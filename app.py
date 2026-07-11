@@ -107,22 +107,27 @@ def convert():
     os.makedirs(temp_dir, exist_ok=True)
 
     try:
-        result = subprocess.run(
-            [YTDLP, "-f", "bestaudio", "-o", os.path.join(temp_dir, "%(id)s.%(ext)s"),
-             "--no-playlist", "--print", "after_move:filepath", url],
-            capture_output=True, text=True, timeout=120
-        )
+        def download(fmt):
+            return subprocess.run(
+                [YTDLP, "-f", fmt, "-o", os.path.join(temp_dir, "%(id)s.%(ext)s"),
+                 "--no-playlist", "--print", "after_move:filepath", url],
+                capture_output=True, text=True, timeout=120
+            )
+
+        result = download("bestaudio")
+        if result.returncode != 0:
+            result = download("best")
         if result.returncode != 0:
             return jsonify({"error": f"下载失败: {result.stderr[-200:]}"}), 500
 
         files = [f for f in os.listdir(temp_dir) if os.path.isfile(os.path.join(temp_dir, f))]
         if not files:
-            return jsonify({"error": "未找到下载的音频文件"}), 500
-        audio_file = os.path.join(temp_dir, files[0])
+            return jsonify({"error": "未找到下载的文件"}), 500
+        media_file = os.path.join(temp_dir, files[0])
 
         mp3_path = os.path.join(DOWNLOAD_DIR, f"bilibili_{task_id}.mp3")
         subprocess.run(
-            [FFMPEG, "-i", audio_file, "-codec:a", "libmp3lame", "-q:a", "2", "-y", mp3_path],
+            [FFMPEG, "-i", media_file, "-vn", "-codec:a", "libmp3lame", "-q:a", "2", "-y", mp3_path],
             capture_output=True, text=True, timeout=180
         )
 
