@@ -107,16 +107,23 @@ def convert():
     os.makedirs(temp_dir, exist_ok=True)
 
     try:
-        def download(fmt):
-            return subprocess.run(
-                [YTDLP, "-f", fmt, "-o", os.path.join(temp_dir, "%(id)s.%(ext)s"),
-                 "--no-playlist", "--print", "after_move:filepath", url],
-                capture_output=True, text=True, timeout=120
-            )
+        def download(fmt, extra_args=None):
+            cmd = [YTDLP, "-f", fmt, "-o", os.path.join(temp_dir, "%(id)s.%(ext)s"),
+                   "--no-playlist", "--print", "after_move:filepath"]
+            if extra_args:
+                cmd.extend(extra_args)
+            cmd.append(url)
+            return subprocess.run(cmd, capture_output=True, text=True, timeout=150)
 
         result = download("bestaudio")
         if result.returncode != 0:
             result = download("best")
+        if result.returncode != 0:
+            stderr = result.stderr
+            if "cookies" in stderr.lower():
+                result = download("best", ["--extractor-args", "douyin:app_version=30.6.0"])
+            if result.returncode != 0:
+                result = download("best", ["--add-header", "User-Agent:Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36"])
         if result.returncode != 0:
             return jsonify({"error": f"下载失败: {result.stderr[-200:]}"}), 500
 
