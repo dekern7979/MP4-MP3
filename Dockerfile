@@ -1,6 +1,8 @@
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ffmpeg chromium chromium-driver && rm -rf /var/lib/apt/lists/*
+
+ENV YTDLP_COOKIES_FROM=chromium
 
 WORKDIR /app
 
