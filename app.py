@@ -120,12 +120,11 @@ def convert():
             result = download("best")
         if result.returncode != 0:
             strategies = [
+                ["--cookies-from-browser", "chromium"],
+                ["--cookies-from-browser", "chrome"],
                 ["--extractor-args", "douyin:app_version=33.0.0"],
                 ["--extractor-args", "douyin:web_version=latest"],
-                ["--extractor-args", "douyin:app_version=30.6.0",
-                 "--add-header", "User-Agent:Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36"],
-                ["--add-header", "Referer:https://www.douyin.com/",
-                 "--add-header", "User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"],
+                ["--add-header", "Referer:https://www.douyin.com/"],
             ]
             for args in strategies:
                 if result.returncode != 0:
